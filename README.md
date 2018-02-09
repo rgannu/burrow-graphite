@@ -20,13 +20,18 @@ A scrape interval is required. Default: 30
 ### Example
 ```sh
 # with env variables
-docker run \
-  -e BURROW_ADDR="http://localhost:8000" \
-  -e GRAPHITE_HOST="192.168.99.100" \
+docker run --add-host=dh:<burrow-ip> \
+  -e BURROW_ADDR="http://dh:8000" \
+  -e GRAPHITE_HOST="<graphite-server-host>" \ 
   -e GRAPHITE_PORT="2003" \
   -e INTERVAL="30" \
-  rgannu/burrow-graphite
+  <image-id>
 
 # with custom command
-docker run -d rgannu/burrow-graphite ./burrow-graphite --burrow-addr http://localhost:8000 --graphite-host 192.168.99.100 --graphite-port 2003 --interval 30
+docker run --add-host=dh:<burrow-ip> \ 
+  <image-id> ./burrow-graphite \
+  --burrow-addr http://dh:8000 \
+  --graphite-host <graphite-server-host> \
+  --graphite-port 2003 \
+  --interval 30
 ```

@@ -1,0 +1,19 @@
+version: "3"
+services:
+  burrow-graphite:
+    build: .
+    extra_hosts:
+     - "burrow-host:172.16.154.234"
+    environment:
+      BURROW_ADDR: http://burrow-host:8000
+      GRAPHITE_HOST: graphite
+      GRAPHITE_PORT: 2003
+      INTERVAL: 30
+    depends_on:
+      - graphite
+  graphite:
+    image: graphiteapp/graphite-statsd
+    ports:
+     # Host port:Container port/protocol
+      - "2003:2003/udp"
+      - "80:80"
