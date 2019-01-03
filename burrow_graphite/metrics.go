@@ -22,3 +22,7 @@ func CloseGraphiteConnection(graphite *graphite.Graphite) error {
   }
   return nil
 }
+
+func SendMetrics(graphite *graphite.Graphite, metrics []Metric) error {
+  return graphite.sendMetrics(metrics)
+}

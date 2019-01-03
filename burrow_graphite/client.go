@@ -66,6 +66,18 @@ type ConsumerGroupStatus struct {
 	Complete   float32     `json:"complete"`
 	MaxLag     Partition   `json:"maxlag"`
 	Partitions []Partition `json:"partitions"`
+	PartitionCount int32   `json:"partition_count"`
+	TotalLag   int64       `json:"totallag"`
+}
+
+type ConsumerGroupLag struct {
+	Cluster    string      `json:"cluster"`
+	Group      string      `json:"group"`
+	Status     string      `json:"status"`
+	Complete   float32     `json:"complete"`
+	MaxLag     Partition   `json:"maxlag"`
+	Partitions []Partition `json:"partitions"`
+	PartitionCount int32   `json:"partition_count"`
 	TotalLag   int64       `json:"totallag"`
 }
 
@@ -80,6 +92,11 @@ type Partition struct {
 type ConsumerGroupStatusResp struct {
 	BurrowResp
 	Status ConsumerGroupStatus `json:"status"`
+}
+
+type ConsumerGroupLagResp struct {
+	BurrowResp
+	Status ConsumerGroupLag `json:"status"`
 }
 
 type ClusterTopicDetailsResp struct {
@@ -319,8 +336,6 @@ func (bc *BurrowClient) ConsumerGroupStatus(cluster, consumerGroup string) (*Con
 		return nil, err
 	}
 
-  // fmt.Printf("===> ConsumerGroupStatus: Endpoint: %s\n", endpoint)
-  // fmt.Printf("===> ConsumerGroupStatus: Retrieving consumer group: %s status ...\n", consumerGroup)
 	status := &ConsumerGroupStatusResp{}
 	err = bc.getJsonReq(endpoint, status)
 	if err != nil {
@@ -344,35 +359,33 @@ func (bc *BurrowClient) ConsumerGroupStatus(cluster, consumerGroup string) (*Con
 	return status, nil
 }
 
-func (bc *BurrowClient) ConsumerGroupLag(cluster, consumerGroup string) (*ConsumerGroupStatusResp, error) {
+func (bc *BurrowClient) ConsumerGroupLag(cluster, consumerGroup string) (*ConsumerGroupLagResp, error) {
 	endpoint, err := bc.buildUrl(fmt.Sprintf("/v3/kafka/%s/consumer/%s/lag", cluster, consumerGroup))
 	if err != nil {
 		return nil, err
 	}
 
-//  fmt.Printf("ConsumerGroupLag: Endpoint: %s\n", endpoint)
-//  fmt.Printf("ConsumerGroupLag: Retrieving consumer group: %s lag ...\n", consumerGroup)
-	status := &ConsumerGroupStatusResp{}
-	err = bc.getJsonReq(endpoint, status)
+	lag := &ConsumerGroupLagResp{}
+	err = bc.getJsonReq(endpoint, lag)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err":           err,
 			"cluster":       cluster,
 			"consumerGroup": consumerGroup,
-		}).Error("error retrieving consumer group status")
+		}).Error("error retrieving consumer group lag")
 		return nil, err
 	}
 
-	if status.Error {
+	if lag.Error {
 		log.WithFields(log.Fields{
 			"err":           err,
 			"cluster":       cluster,
 			"consumerGroup": consumerGroup,
-		}).Error("error retrieving consumer group status")
-		return nil, errors.New(status.Message)
+		}).Error("error retrieving consumer group lag")
+		return nil, errors.New(lag.Message)
 	}
 
-	return status, nil
+	return lag, nil
 }
 
 func (bc *BurrowClient) ClusterTopicDetails(cluster, topic string) (*ClusterTopicDetailsResp, error) {
@@ -381,8 +394,6 @@ func (bc *BurrowClient) ClusterTopicDetails(cluster, topic string) (*ClusterTopi
 		return nil, err
 	}
 
-//  fmt.Printf("ClusterTopicDetails: Endpoint: %s\n", endpoint)
-//  fmt.Printf("ClusterTopicDetails: Retrieving topic: %s details ...\n", topic)
 	topicDetails := &ClusterTopicDetailsResp{}
 	err = bc.getJsonReq(endpoint, topicDetails)
 	if err != nil {
