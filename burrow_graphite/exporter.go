@@ -28,7 +28,7 @@ func (be *BurrowExporter) processGroup(cluster, group string, gh *graphite.Graph
 		}).Error("error getting lag for consumer group. returning.")
 		return
 	}
-  metrics := make([]graphite.Metric)
+  metrics := make([]graphite.Metric, 32)
 
 	for _, partition := range lag.Status.Partitions {
 	  metricNamePrefix := "kafka" + "." + lag.Status.Cluster + "." + "group" + "." + lag.Status.Group + "." + "topic" + "." + partition.Topic + "." + strconv.Itoa(int(partition.Partition))
@@ -37,7 +37,7 @@ func (be *BurrowExporter) processGroup(cluster, group string, gh *graphite.Graph
 	}
 
   totalLagMetricName := "kafka" + "." + lag.Status.Cluster + "." + "group" + "." + lag.Status.Group + "." + "TotalLag"
-  metrics = append(metrics, graphite.NewMetric(totalLagMetricName, strconv.Itoa(int(lag.Status.TotalLag))))
+  metrics = append(metrics, graphite.NewMetric(totalLagMetricName, strconv.Itoa(int(lag.Status.TotalLag)), time.Now().Unix()))
   SendMetrics(gh, metrics)
   if err != nil {
       log.WithFields(log.Fields{
